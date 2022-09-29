@@ -16,11 +16,13 @@ namespace NetMQ.Controllers
         private readonly SocketFactory _factory;
         private List<NetMQSocket> _sockets = new List<NetMQSocket>();
         private List<object> _controllers = new List<object>();
+        private NetMQPoller _poller;
         public NetMQHostedService(IServiceProvider provider, ILogger<NetMQHostedService> logger, SocketFactory factory)
         {
             _provider = provider;
             _logger = logger;
             _factory = factory;
+            _poller = new NetMQPoller();
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -37,28 +39,23 @@ namespace NetMQ.Controllers
                 }
             }
 
-            Task.Run((() => Execute(cancellationToken)));
-            return Task.CompletedTask;
-        }
-
-
-        private async Task Execute(CancellationToken token)
-        {
-            var poller = new NetMQPoller();
             foreach (var socket in _sockets)
             {
-                poller.Add(socket);
+                _poller.Add(socket);
             }
-            poller.RunAsync();
+            _poller.RunAsync();
+            return Task.CompletedTask;
         }
+        
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
+           
             foreach (var netMqSocket in _sockets)
             {
                 netMqSocket.Dispose();
             }
-
+            _poller.StopAsync();
             foreach (var controller in _controllers)
             {
                 if (controller is IDisposable disp)

@@ -12,10 +12,12 @@ namespace NetMQ.Controllers.Core.SocketFactories
     public class SocketFactory
     {
         private readonly ILogger<SocketFactory> _logger;
+        private readonly IServiceProvider _provider;
 
-        public SocketFactory(ILogger<SocketFactory> logger)
+        public SocketFactory(ILogger<SocketFactory> logger, IServiceProvider provider)
         {
             _logger = logger;
+            _provider = provider;
         }
 
         public IEnumerable<NetMQSocket> BuildSockets(object controller, MethodInfo handler, IEnumerable<IFilter> filters)
@@ -59,7 +61,7 @@ namespace NetMQ.Controllers.Core.SocketFactories
                 .FirstOrDefault(x => factorytype.IsAssignableFrom(x));
             if (factory == null)
                 return null;
-            var instance = Activator.CreateInstance(factory);
+            var instance = _provider.GetService(factory);
             return instance;
         }
     }

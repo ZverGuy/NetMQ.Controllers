@@ -6,12 +6,14 @@ using System.Net.Sockets;
 using System.Reflection;
 using NetMQ.Controllers.Attributes;
 using NetMQ.Controllers.Attributes.Filtering;
+using NetMQ.Controllers.Core.SocketFactories;
 
 namespace NetMQ.Controllers
 {
     internal static class ControllerHelper
     {
         internal static List<Type> _controllerCache { get; } = new List<Type>();
+        internal static List<Type> _factoryCache = new List<Type>();
 
         /// <summary>
         /// Get All Classes that use derived class from <see cref="BaseSocketAttribute"/>
@@ -19,11 +21,12 @@ namespace NetMQ.Controllers
         /// <returns></returns>
         internal static IEnumerable<Type> GetControllers()
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var types = assemblies.SelectMany(x => x.GetTypes());
+           
 
             if (!_controllerCache.Any())
             {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                var types = assemblies.SelectMany(x => x.GetTypes());
                 _controllerCache.AddRange(types.Where(x =>
                 {
                     return x
@@ -33,6 +36,22 @@ namespace NetMQ.Controllers
             }
 
             return _controllerCache;
+        }
+        internal static IEnumerable<Type> GetSocketFactories()
+        {
+            
+            if (!_factoryCache.Any())
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                var types = assemblies.SelectMany(x => x.GetTypes());
+                _factoryCache.AddRange(types.Where(x =>
+                {
+                    return x.GetInterfaces()
+                        .Any(l => l.IsGenericType && l.GetGenericTypeDefinition() == typeof(ISocketFactory<>));
+                }));
+            }
+            
+            return _factoryCache;
         }
 
         internal static IEnumerable<MethodInfo> GetMethodsThatHaveSocketAttributes<TSocketType>()
