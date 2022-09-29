@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace NetMQ.Controllers.Core
 {
-    public class SocketCollection : IEnumerable<NetMQSocket>
+    internal class SocketCollection : ISocketCollection
     {
         private ConcurrentBag<(string connectionstring, NetMQSocket socket)> _sockets =
             new ConcurrentBag<(string connectionstring, NetMQSocket socket)>();
@@ -15,6 +15,7 @@ namespace NetMQ.Controllers.Core
         {
             
         }
+
         public IEnumerator<NetMQSocket> GetEnumerator() => _sockets.Select(x => x.socket).GetEnumerator();
 
         public TSocket GetOrCreate<TSocket>(string connectionstring, Func<TSocket>? factory = null) where TSocket: NetMQSocket
@@ -25,6 +26,7 @@ namespace NetMQ.Controllers.Core
             if (socket != null)
                 return socket;
             socket = factory?.Invoke();
+            _sockets.Add((connectionstring, socket));
             return socket;
         }
 

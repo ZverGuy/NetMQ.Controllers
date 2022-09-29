@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NetMQ.Controllers.Attributes;
+using NetMQ.Controllers.Core;
 using NetMQ.Controllers.Core.SocketFactories;
 
 namespace NetMQ.Controllers
@@ -13,15 +14,16 @@ namespace NetMQ.Controllers
     {
         private readonly IServiceProvider _provider;
         private readonly ILogger<NetMQHostedService> _logger;
-        private readonly SocketFactory _factory;
-        private List<NetMQSocket> _sockets = new List<NetMQSocket>();
+        private readonly AbstractSocketFactory _factory;
+        private readonly ISocketCollection _socketCollection;
         private List<object> _controllers = new List<object>();
         private NetMQPoller _poller;
-        public NetMQHostedService(IServiceProvider provider, ILogger<NetMQHostedService> logger, SocketFactory factory)
+        public NetMQHostedService(IServiceProvider provider, ILogger<NetMQHostedService> logger, AbstractSocketFactory factory, ISocketCollection socketCollection)
         {
             _provider = provider;
             _logger = logger;
             _factory = factory;
+            _socketCollection = socketCollection;
             _poller = new NetMQPoller();
         }
         public Task StartAsync(CancellationToken cancellationToken)
@@ -35,11 +37,11 @@ namespace NetMQ.Controllers
                 foreach (var method in methods)
                 {
                     var filters = ControllerHelper.GetFilters(method);
-                    _sockets.AddRange(_factory.BuildSockets(instance, method, filters));
+                    _factory.BuildSockets(instance, method, filters);
                 }
             }
 
-            foreach (var socket in _sockets)
+            foreach (var socket in _socketCollection)
             {
                 _poller.Add(socket);
             }
@@ -51,7 +53,7 @@ namespace NetMQ.Controllers
         public Task StopAsync(CancellationToken cancellationToken)
         {
            
-            foreach (var netMqSocket in _sockets)
+            foreach (var netMqSocket in _socketCollection)
             {
                 netMqSocket.Dispose();
             }

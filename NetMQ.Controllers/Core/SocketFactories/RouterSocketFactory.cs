@@ -9,9 +9,9 @@ namespace NetMQ.Controllers.Core.SocketFactories
 {
     public class RouterSocketFactory : ISocketFactory<RouterSocketAttribute>
     {
-        private readonly SocketCollection _collection;
+        private readonly ISocketCollection _collection;
 
-        public RouterSocketFactory(SocketCollection collection)
+        public RouterSocketFactory(ISocketCollection collection)
         {
             _collection = collection;
         }

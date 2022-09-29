@@ -24,9 +24,9 @@ namespace NetMQ.Controllers.Extensions
             }
             
             builder = builder.ConfigureServices(
-                (context, collection) => collection.AddSingleton<SocketFactory>());
+                (context, collection) => collection.AddSingleton<AbstractSocketFactory>());
             builder = builder.ConfigureServices(
-                (context, collection) => collection.AddSingleton<SocketCollection>());
+                (context, collection) => collection.AddSingleton<ISocketCollection,SocketCollection>());
             
             return builder.ConfigureServices(
                 (context, collection) => collection.AddHostedService<NetMQHostedService>());

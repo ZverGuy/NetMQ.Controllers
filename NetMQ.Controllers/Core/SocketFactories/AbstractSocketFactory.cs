@@ -9,12 +9,12 @@ using NetMQ.Controllers.Attributes.Filtering;
 
 namespace NetMQ.Controllers.Core.SocketFactories
 {
-    public class SocketFactory
+    public class AbstractSocketFactory
     {
-        private readonly ILogger<SocketFactory> _logger;
+        private readonly ILogger<AbstractSocketFactory> _logger;
         private readonly IServiceProvider _provider;
 
-        public SocketFactory(ILogger<SocketFactory> logger, IServiceProvider provider)
+        public AbstractSocketFactory(ILogger<AbstractSocketFactory> logger, IServiceProvider provider)
         {
             _logger = logger;
             _provider = provider;
