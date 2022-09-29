@@ -5,7 +5,7 @@ using NetMQ.Controllers.Attributes.Filtering;
 
 namespace NetMQ.Controllers.Core.SocketFactories
 {
-    public interface ISocketFactory< in TAttribute> where TAttribute: BaseSocketAttribute
+    public interface ISocketFactory<TAttribute> where TAttribute: BaseSocketAttribute
     {
         NetMQSocket BuildSocket(object controllerInstance, MethodInfo handler, IEnumerable<IFilter> filters,
             TAttribute socketAttribute);

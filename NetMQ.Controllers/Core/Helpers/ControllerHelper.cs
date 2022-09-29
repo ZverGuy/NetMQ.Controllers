@@ -35,7 +35,7 @@ namespace NetMQ.Controllers
             return _controllerCache;
         }
 
-        internal static IEnumerable<MethodInfo> GetMethodsBySocketType<TSocketType>()
+        internal static IEnumerable<MethodInfo> GetMethodsThatHaveSocketAttributes<TSocketType>()
             where TSocketType : BaseSocketAttribute
         {
             return _controllerCache.SelectMany(x => x.GetMethods())
@@ -47,10 +47,15 @@ namespace NetMQ.Controllers
             return info.GetCustomAttributes(typeof(BaseSocketAttribute), inherit: true).Cast<BaseSocketAttribute>();
         }
 
-        internal static IEnumerable<MethodInfo> GetMethodsBySocketType<TSocketType>(object controller)
-            where TSocketType : BaseSocketAttribute
+        internal static IEnumerable<MethodInfo> GetMethodsThatHaveSocketAttributes(object controller)
         {
-            return controller.GetType().GetMethods().Where(x => x.GetCustomAttributes(typeof(TSocketType), true).Any());
+            var type = controller.GetType();
+            return type
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                .Where(x => 
+                    x.GetCustomAttributes()
+                        .Any(l => l is BaseSocketAttribute))
+                    ;
         }
 
         internal static IEnumerable<IFilter> GetFilters(MethodInfo method)

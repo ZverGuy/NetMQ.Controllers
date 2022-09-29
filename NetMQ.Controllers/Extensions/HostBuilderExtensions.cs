@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Net.Sockets;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NetMQ.Controllers.Core.SocketFactories;
 using NetMQ.Sockets;
 
 namespace NetMQ.Controllers.Extensions
@@ -11,9 +13,10 @@ namespace NetMQ.Controllers.Extensions
             var controllers = ControllerHelper.GetControllers();
             foreach (var controller in controllers)
             {
-                builder.ConfigureServices(((context, collection) => collection.AddSingleton(controller)));
+                builder = builder.ConfigureServices(((context, collection) => collection.AddSingleton(controller)));
             }
-            
+            builder = builder.ConfigureServices(
+                (context, collection) => collection.AddSingleton<SocketFactory>());
             return builder.ConfigureServices(
                 (context, collection) => collection.AddHostedService<NetMQHostedService>());
             

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using NetMQ.Controllers.Attributes;
 using NetMQ.Controllers.Attributes.Filtering;
@@ -12,7 +13,7 @@ namespace NetMQ.Controllers.Core.SocketFactories
     {
         private readonly ILogger<SocketFactory> _logger;
 
-        internal SocketFactory(ILogger<SocketFactory> logger)
+        public SocketFactory(ILogger<SocketFactory> logger)
         {
             _logger = logger;
         }
@@ -32,7 +33,10 @@ namespace NetMQ.Controllers.Core.SocketFactories
                         _logger.LogError($"Not found socket factory for {nameof(socketType)}");
                         continue;
                     }
-                    var socket = factory.BuildSocket(controller, handler, filters, socketType);
+                    var socket = (NetMQSocket)factory.GetType().GetMethod("BuildSocket").Invoke(factory, new object[]
+                    {
+                        controller, handler, filters, socketType
+                    });
                     result.Add(socket);
                 }
                 catch (Exception e)
@@ -44,7 +48,7 @@ namespace NetMQ.Controllers.Core.SocketFactories
             return result;
         }
 
-        private ISocketFactory<TSocket> GetSocketFactory<TSocket>(TSocket socketType) where TSocket: BaseSocketAttribute
+        private object GetSocketFactory<TSocket>(TSocket socketType) where TSocket: BaseSocketAttribute
         {
             var type = socketType.GetType();
             var generic = typeof(ISocketFactory<>);
@@ -52,10 +56,11 @@ namespace NetMQ.Controllers.Core.SocketFactories
 
             var factory = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
-                .FirstOrDefault(x => x.IsAssignableFrom(factorytype));
+                .FirstOrDefault(x => factorytype.IsAssignableFrom(x));
             if (factory == null)
                 return null;
-            return (ISocketFactory<TSocket>)Activator.CreateInstance(factory);
+            var instance = Activator.CreateInstance(factory);
+            return instance;
         }
     }
 }

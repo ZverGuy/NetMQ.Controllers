@@ -29,14 +29,27 @@ namespace NetMQ.Controllers
             {
                 var instance = _provider.GetService(controller);
                 _controllers.Add(instance);
-                var methods = ControllerHelper.GetMethodsBySocketType<BaseSocketAttribute>(controller);
+                var methods = ControllerHelper.GetMethodsThatHaveSocketAttributes(instance);
                 foreach (var method in methods)
                 {
                     var filters = ControllerHelper.GetFilters(method);
                     _sockets.AddRange(_factory.BuildSockets(instance, method, filters));
                 }
             }
+
+            Task.Run((() => Execute(cancellationToken)));
             return Task.CompletedTask;
+        }
+
+
+        private async Task Execute(CancellationToken token)
+        {
+            var poller = new NetMQPoller();
+            foreach (var socket in _sockets)
+            {
+                poller.Add(socket);
+            }
+            poller.RunAsync();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -53,6 +66,7 @@ namespace NetMQ.Controllers
                     disp.Dispose();
                 }
             }
+            return Task.CompletedTask;
         }
     }
 }
