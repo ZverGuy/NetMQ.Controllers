@@ -14,21 +14,19 @@ namespace ExampleApp
     {
         static async Task Main(string[] args)
         {
+            using var socket = new PublisherSocket();
+            var message = new NetMQMessage();
+            socket.Bind("inproc://test");
+           
+
             var builder = new HostBuilder().UseConsoleLifetime();
             builder.ConfigureLogging(x => x.AddConsole());
             builder.UseNetMQControllers();
             var host = builder.Build();
             await host.StartAsync();
-
-            using (DealerSocket socket = new DealerSocket())
-            {
-                var message = new NetMQMessage();
-                message.AppendEmptyFrame();
-                message.Append("ads");
-                socket.Connect("inproc://test");
-                socket.SendMultipartMessage(message);
-            }
-
+            message.Append("TestTopic");
+            message.Append("Lol");
+            socket.SendMultipartMessage(message);
             Console.ReadKey();
         }
     }

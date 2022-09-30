@@ -14,6 +14,7 @@
             Message = message;
             RoutingKey = routingKey;
         }
+        public MessageContext() {}
     }
 
     public class NetMQMessageContext<TSocket> : MessageContext<TSocket, NetMQMessage> where TSocket : NetMQSocket
