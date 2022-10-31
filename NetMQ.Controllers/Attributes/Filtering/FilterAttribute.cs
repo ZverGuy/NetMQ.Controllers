@@ -3,8 +3,9 @@
 namespace NetMQ.Controllers.Attributes.Filtering
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class FilterAttribute : Attribute
+    public abstract class FilterAttribute : Attribute, IFilter
     {
-        public IFilter Filter { get; set; }
+
+        public abstract bool IsMatch(NetMQMessage message);
     }
 }

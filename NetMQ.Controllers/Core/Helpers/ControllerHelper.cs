@@ -80,8 +80,7 @@ namespace NetMQ.Controllers
         internal static IEnumerable<IFilter> GetFilters(MethodInfo method)
         {
             return method.GetCustomAttributes(typeof(FilterAttribute), inherit: true)
-                .Cast<FilterAttribute>()
-                .Select(x => x.Filter);
+                .Cast<FilterAttribute>();
         }
     }
 }

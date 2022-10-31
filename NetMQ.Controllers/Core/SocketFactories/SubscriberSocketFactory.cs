@@ -19,13 +19,12 @@ namespace NetMQ.Controllers.Core.SocketFactories
             _socketCollection = socketCollection;
             _logger = logger;
         }
-
         public NetMQSocket BuildSocket(object controllerInstance, MethodInfo handler, IEnumerable<IFilter> filters,
             SubscriberSocketAttribute socketAttribute)
         {
             if (string.IsNullOrWhiteSpace(socketAttribute.ConnectionString))
                 throw new ArgumentException($"ConnectionString not defined in {handler.Name}");
-            if (string.IsNullOrWhiteSpace(socketAttribute.Topic))
+            if(string.IsNullOrWhiteSpace(socketAttribute.Topic))
                 throw new ArgumentException($"Topic not defined in {handler.Name}");
             var key = socketAttribute.ConnectionString + ":" + socketAttribute.Topic;
             var socket = _socketCollection.GetOrCreate<SubscriberSocket>(key, () =>
@@ -41,6 +40,7 @@ namespace NetMQ.Controllers.Core.SocketFactories
                 try
                 {
                     var msg = args.Socket.ReceiveMultipartMessage();
+                    var address = msg[0].ConvertToString();
                     var valid = true;
                     foreach (var filter in filters)
                     {
@@ -55,6 +55,7 @@ namespace NetMQ.Controllers.Core.SocketFactories
                             var result = handler.Invoke(controllerInstance, new[] { context });
                             if (result is Task task)
                                 await task;
+
                         }
                         else if (type == ContextType.TypedContext)
                         {

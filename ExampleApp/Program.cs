@@ -14,9 +14,9 @@ namespace ExampleApp
     {
         static async Task Main(string[] args)
         {
-            using var socket = new PublisherSocket();
+            using var socket = new RequestSocket();
             var message = new NetMQMessage();
-            socket.Bind("inproc://test");
+          
            
 
             var builder = new HostBuilder().UseConsoleLifetime();
@@ -24,8 +24,8 @@ namespace ExampleApp
             builder.UseNetMQControllers();
             var host = builder.Build();
             await host.StartAsync();
-            message.Append("TestTopic");
-            message.Append("Lol");
+            socket.Connect("inproc://test");
+            message.Append("lol");
             socket.SendMultipartMessage(message);
             Console.ReadKey();
         }
